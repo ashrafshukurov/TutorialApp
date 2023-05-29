@@ -1,6 +1,8 @@
 package com.tutorials.app.service.impl;
 
 import com.tutorials.app.dto.TutorialDto;
+import com.tutorials.app.exception.NoSuchElementException;
+import com.tutorials.app.exception.TutorialAlreadyExistsException;
 import com.tutorials.app.model.Tutorial;
 import com.tutorials.app.repository.TutorialRepository;
 import com.tutorials.app.service.TutorialService;
@@ -22,11 +24,16 @@ public class TutorialServiceImpl implements TutorialService {
 
     @Override
     public int addBook(TutorialDto tutorialDto) {
-        log.info("adding started");
-        Tutorial tutorial = convertToTutorial(tutorialDto);
-        log.info("Adding tutorial:{}", tutorialDto);
-        log.info("adding finished");
-        return tutorialRepository.save(tutorial);
+        try {
+            log.info("adding started");
+            Tutorial tutorial = convertToTutorial(tutorialDto);
+            log.info("Adding tutorial:{}", tutorialDto);
+            log.info("adding finished");
+            return tutorialRepository.save(tutorial);
+        }catch (Exception e){
+            throw new TutorialAlreadyExistsException("Tutorial Already Exists in the table");
+        }
+
 
     }
 
@@ -39,22 +46,20 @@ public class TutorialServiceImpl implements TutorialService {
             return tutorialRepository.update(tutorial, id);
         } catch (Exception e) {
             log.error("error occurred while updating process");
-            e.printStackTrace();
-            return 0;
+            throw new NoSuchElementException("Tutorial Not found in the database");
         }
     }
 
     @Override
     public TutorialDto getById(Long id) {
-        try {
+        try{
             log.info("searching id to get info {}", id);
             Tutorial tutorial = tutorialRepository.findById(id);
-            TutorialDto tutorialDto = convertToDto(tutorial);
-            log.info("searching completed and {} id received", id);
-            return tutorialDto;
-        } catch (Exception e) {
-            log.error("id:{} is not in your list", id);
-            return null;
+                TutorialDto tutorialDto = convertToDto(tutorial);
+                log.info("searching completed and {} id received", id);
+                return tutorialDto;
+        }catch (Exception e){
+            throw new NoSuchElementException("Tutorial Not found in the database");
         }
 
     }
@@ -66,8 +71,8 @@ public class TutorialServiceImpl implements TutorialService {
             return tutorialRepository.deleteById(id);
         } catch (Exception e) {
             log.error("your id:{} is not in your list", id);
-            e.printStackTrace();
-            return 0;
+            throw new NoSuchElementException("Tutorial Not found in the database");
+
         }
     }
 
@@ -110,8 +115,6 @@ public class TutorialServiceImpl implements TutorialService {
             log.error("list is empty");
             return 0;
         }
-
-
     }
 
     private TutorialDto convertToDto(Tutorial tutorial) {
