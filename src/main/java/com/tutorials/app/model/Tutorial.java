@@ -1,10 +1,9 @@
 package com.tutorials.app.model;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiOperation;
+
 import lombok.*;
+
+import javax.persistence.*;
 
 @Getter
 @Setter
@@ -12,10 +11,16 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Tutorial {
+@Table
+@Entity
 
+public class Tutorial {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String title;
+
     private String description;
     private boolean published;
 

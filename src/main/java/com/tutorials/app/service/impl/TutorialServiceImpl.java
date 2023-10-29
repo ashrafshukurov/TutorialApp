@@ -3,6 +3,7 @@ package com.tutorials.app.service.impl;
 import com.tutorials.app.dto.TutorialDto;
 import com.tutorials.app.exception.NoSuchElementException;
 import com.tutorials.app.exception.TutorialAlreadyExistsException;
+import com.tutorials.app.mapper.TutorialMapper;
 import com.tutorials.app.model.Tutorial;
 import com.tutorials.app.repository.TutorialRepository;
 import com.tutorials.app.service.TutorialService;
@@ -10,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,59 +20,50 @@ import java.util.stream.Collectors;
 public class TutorialServiceImpl implements TutorialService {
 
 
-    private final TutorialRepository tutorialRepository;
+    private final  TutorialRepository tutorialRepository;
+    private final TutorialMapper tutorialMapper;
 
     @Override
-    public int addBook(TutorialDto tutorialDto) {
-        try {
+    public void addBook(TutorialDto tutorialDto) {
+
             log.info("adding started");
-            Tutorial tutorial = convertToTutorial(tutorialDto);
+            Tutorial tutorial = tutorialMapper.dtoToTutorial(tutorialDto);
             log.info("Adding tutorial:{}", tutorialDto);
             log.info("adding finished");
-            return tutorialRepository.save(tutorial);
-        }catch (Exception e){
-            throw new TutorialAlreadyExistsException("Tutorial Already Exists in the table");
-        }
-
-
+            Tutorial tutorial1=tutorialRepository.findById(tutorial.getId()).orElse(null);
+            if(tutorial1==null){
+                tutorialRepository.save(tutorial);
+            }else{
+                throw new TutorialAlreadyExistsException("Tutorial Already exists");
+            }
     }
 
     @Override
-    public int updateTutorial(TutorialDto tutorialDto, Long id) {
-        try {
-            Tutorial tutorial = Tutorial.builder().id(tutorialDto.getId()).title(tutorialDto.getTitle()).description(tutorialDto.getDescription())
-                    .published(tutorialDto.isPublished()).build();
-            log.info("Updating tutorial with id {}:{}", id, tutorialDto);
-            return tutorialRepository.update(tutorial, id);
-        } catch (Exception e) {
-            log.error("error occurred while updating process");
-            throw new NoSuchElementException("Tutorial Not found in the database");
-        }
+    public void updateTutorial(TutorialDto tutorialDto, Long id) {
+           Tutorial tutorial=tutorialRepository.findById(id).orElseThrow(()->new NoSuchElementException("tutorial not found"));
+           tutorial.setId(tutorialDto.getId());
+           tutorial.setDescription(tutorialDto.getDescription());
+           tutorial.setTitle(tutorialDto.getTitle());
+           tutorial.setPublished(tutorialDto.isPublished());
     }
 
     @Override
     public TutorialDto getById(Long id) {
-        try{
             log.info("searching id to get info {}", id);
-            Tutorial tutorial = tutorialRepository.findById(id);
-                TutorialDto tutorialDto = convertToDto(tutorial);
+            Tutorial tutorial = tutorialRepository.findById(id).orElseThrow(()->new NoSuchElementException("tutorial Not found"));
+                TutorialDto tutorialDto = tutorialMapper.tutorialToDto(tutorial);
                 log.info("searching completed and {} id received", id);
                 return tutorialDto;
-        }catch (Exception e){
-            throw new NoSuchElementException("Tutorial Not found in the database");
-        }
-
     }
 
     @Override
-    public int deleteById(Long id) {
-        try {
-            log.info("{}th id is searching to delete", id);
-            return tutorialRepository.deleteById(id);
-        } catch (Exception e) {
-            log.error("your id:{} is not in your list", id);
+    public void deleteById(Long id) {
+        Tutorial tutorial=tutorialRepository.findById(id).orElse(null);
+        if(tutorial==null){
             throw new NoSuchElementException("Tutorial Not found in the database");
-
+        }else{
+            log.info("{}th id is searching to delete", id);
+             tutorialRepository.deleteById(id);
         }
     }
 
@@ -80,13 +71,8 @@ public class TutorialServiceImpl implements TutorialService {
     public List<TutorialDto> getAll() {
         try{
             log.info("searching all tutorials to get");
-            List<TutorialDto> list = new ArrayList<>();
-            for (Tutorial t : tutorialRepository.findAll()) {
-                TutorialDto tutorialDto = new TutorialDto(t.getId(), t.getTitle(), t.getDescription(), t.isPublished());
-                list.add(tutorialDto);
-            }
-            log.info("searching completed");
-            return list;
+            List<Tutorial> list=tutorialRepository.findAll();
+            return list.stream().map(tutorialMapper::tutorialToDto).collect(Collectors.toList());
         }catch (Exception e){
             log.error("your list is empty");
             return null;
@@ -98,7 +84,9 @@ public class TutorialServiceImpl implements TutorialService {
         try {
             log.info("searching tutorials by published status:{}", published);
             List<Tutorial> list = tutorialRepository.findByPublished(published);
-            return list.stream().map(this::convertToDto).collect(Collectors.toList());
+
+
+            return list.stream().map(tutorialMapper::tutorialToDto).collect(Collectors.toList());
         }catch (Exception e){
             log.error("in list is not published status:{}",published);
             return null;
@@ -107,23 +95,9 @@ public class TutorialServiceImpl implements TutorialService {
     }
 
     @Override
-    public int deleteAll() {
-        try {
+    public void deleteAll() {
             log.info("deleting all tutorials");
-            return tutorialRepository.deleteAll();
-        }catch (Exception e){
-            log.error("list is empty");
-            return 0;
-        }
+            tutorialRepository.deleteAll();
     }
 
-    private TutorialDto convertToDto(Tutorial tutorial) {
-        return TutorialDto.builder().id(tutorial.getId()).title(tutorial.getTitle())
-                .description(tutorial.getDescription()).published(tutorial.isPublished()).build();
-    }
-
-    private Tutorial convertToTutorial(TutorialDto tutorialDto) {
-        return Tutorial.builder().id(tutorialDto.getId()).description(tutorialDto.getDescription())
-                .published(tutorialDto.isPublished()).title(tutorialDto.getTitle()).build();
-    }
 }

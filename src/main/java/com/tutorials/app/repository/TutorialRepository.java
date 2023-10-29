@@ -1,15 +1,12 @@
 package com.tutorials.app.repository;
 
 import com.tutorials.app.model.Tutorial;
-
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 import java.util.List;
-
-public interface TutorialRepository {
-    int save(Tutorial book);
-    int update(Tutorial book,Long id);
-    Tutorial findById(Long id);
-    int deleteById(Long id);
-    List<Tutorial> findAll();
+@Repository
+public interface TutorialRepository extends JpaRepository<Tutorial,Long> {
     List<Tutorial> findByPublished(boolean published);
-    int deleteAll();
+
+
 }

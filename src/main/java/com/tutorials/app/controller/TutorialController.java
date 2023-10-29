@@ -6,18 +6,16 @@ import io.swagger.annotations.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-
 @RestController
-@RequestMapping("/app")
+//@RequestMapping("/app")
 public class TutorialController {
     private final TutorialService tutorialService;
-
     public TutorialController(TutorialService tutorialService) {
         this.tutorialService = tutorialService;
     }
     @PostMapping
-    public int insert(@RequestBody TutorialDto tutorialDto){
-        return tutorialService.addBook(tutorialDto);
+    public void insert(@RequestBody TutorialDto tutorialDto){
+         tutorialService.addBook(tutorialDto);
     }
     @ApiOperation(value = "Provide ID to get Tutorial",notes = "Retrieve a tutorial based on its ID",response =TutorialDto.class)
     @ApiResponses(value={@ApiResponse(code=200,message = "successfully greeting"),
@@ -28,14 +26,14 @@ public class TutorialController {
     }
     @ApiOperation(value = "delete Tutorial by id",notes = "delete Tutorial based on its ID from tutorials")
     @DeleteMapping("/{id}")
-    public int deleteById(@ApiParam(name = "id",value = "Tutorial id:",example = "20")@PathVariable Long id){
-        return tutorialService.deleteById(id);
+    public void deleteById(@ApiParam(name = "id",value = "Tutorial id:",example = "20")@PathVariable Long id){
+         tutorialService.deleteById(id);
     }
     @ApiOperation(value ="update Tutorial by id",notes = "Update Tutorial based on its ID")
     @PutMapping("/{id}")
-    public int updateById(@RequestBody TutorialDto tutorialDto,@ApiParam(name = "id",value ="Tutorial ID",example = "20") @PathVariable Long id){
+    public void updateById(@RequestBody TutorialDto tutorialDto,@ApiParam(name = "id",value ="Tutorial ID",example = "20") @PathVariable Long id){
 
-        return tutorialService.updateTutorial(tutorialDto,id);
+         tutorialService.updateTutorial(tutorialDto,id);
     }
     @ApiOperation(value = "get All Tutorial",notes = "Retrieve All Tutorial from Tutorial list")
     @GetMapping
@@ -49,11 +47,8 @@ public class TutorialController {
     }
     @ApiOperation(value = "Delete All Tutorials",notes = "Delete all tutorials from list")
     @DeleteMapping
-    public void DeleteAllTutorial(){
+    public void DeleteAllTutorial() {
         tutorialService.deleteAll();
     }
-
-
-
-
+    
 }
